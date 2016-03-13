@@ -115,8 +115,6 @@
     myView.backgroundColor = [UIColor redColor];
     [self.view addSubview:myView];
     
-    /*
-    
     [UIView animateWithDuration:3.0 animations:^{
         myView.frame = CGRectMake(self.view.bounds.size.width-50, 100, 50, 50);
         myView.alpha = 0;
@@ -125,10 +123,6 @@
     } completion:^(BOOL finished) {
         NSLog(@"animation completion!");
     }];
-     */
-    
-    
-    
     
 }
 
