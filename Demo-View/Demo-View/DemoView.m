@@ -18,4 +18,11 @@
 }
 */
 
+- (void)setOrigin:(CGPoint)myPoint
+{
+    CGRect myframe = self.frame;
+    myframe.origin = myPoint;
+    self.frame = myframe;
+}
+
 @end
