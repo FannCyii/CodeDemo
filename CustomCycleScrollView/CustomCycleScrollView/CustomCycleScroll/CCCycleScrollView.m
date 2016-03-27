@@ -8,6 +8,15 @@
 
 #import "CCCycleScrollView.h"
 
+#define CC_CYCLEINDEX_CALCULATE(x,y) (x+y)%y  //计算循环索引
+#define CC_DEFAULT_DURATION_TIME 2.0f         //默认持续时间
+#define CC_DEFAULT_DURATION_FRAME CGRectMake(0,0,[UIScreen mainScreen].bounds.size.width,[UIScreen mainScreen].bounds.size.height/4)
+//#define CC_SIZE_WIDTH frame.size.width
+//#define CC_SIZE_HIGHT frame.size.height
+//#define CC_ORIGIN_X frame.origin.x
+//#define CC_ORIGIN_Y frame.origin.y
+
+
 @interface CCCycleScrollView ()<UIScrollViewDelegate>
 
 @property (nonatomic, readwrite, strong)UIImageView * leftImageView;
@@ -23,19 +32,16 @@
 
 @implementation CCCycleScrollView
 
-/*
-// Only override drawRect: if you perform custom drawing.
-// An empty implementation adversely affects performance during animation.
-- (void)drawRect:(CGRect)rect {
-    // Drawing code
-}
-*/
-
 
 #pragma mark - init function
+- (instancetype)initWithImages:(NSArray *)images
+{
+    return [self initWithImages:images withFrame:CC_DEFAULT_DURATION_FRAME];
+}
+
 - (instancetype)initWithImages:(NSArray *)images withFrame:(CGRect)frame
 {
-    return [self initWithImages:images withPageViewLocation:CCCycleScrollPageViewPositionBottomCenter withPageChangeTime:2.0f withFrame:frame];
+    return [self initWithImages:images withPageViewLocation:CCCycleScrollPageViewPositionBottomCenter withPageChangeTime:CC_DEFAULT_DURATION_TIME withFrame:frame];
 }
 
 - (instancetype)initWithImages:(NSArray *)images withPageViewLocation:(CCCycleScrollPageViewPosition)pageLocation withPageChangeTime:(NSTimeInterval)changeTime withFrame:(CGRect)frame
@@ -48,40 +54,12 @@
         _pageChangeTime = changeTime;
         _currentNumber = 0;
 
-        [self setCycleViewFrame:frame];
-        
-        //初始化容器ScrollView和三个imageview
-        _containerView = [[UIScrollView alloc]initWithFrame:frame];
-        _containerView.contentSize = CGSizeMake(3*frame.size.width, frame.size.height);
-        _containerView.contentOffset = CGPointMake(self.frame.size.width, self.frame.origin.y)
-        ;
-        _containerView.delegate = self;
-    
-        [_containerView addSubview:_leftImageView];
-        [_containerView addSubview:_rightImageView];
-        [_containerView addSubview:_middleImageView];
-        [self addSubview:_containerView];
-        _containerView.scrollEnabled = YES;
-        _containerView.showsHorizontalScrollIndicator = NO;
-        _containerView.showsVerticalScrollIndicator = NO;
-        _containerView.pagingEnabled = YES;
-        
-        //初始化pageControl
-        _pageControl = [[UIPageControl alloc]init];
-        _pageControl.currentPageIndicatorTintColor = [UIColor blackColor];
-        _pageControl.pageIndicatorTintColor = [UIColor whiteColor];
-        [self pageControlPosition:_pageLocation];
-        [self addSubview:_pageControl];
-        _pageControl.numberOfPages = _images.count;
-        
+        [self cycleViewConfigWithFrame:frame];
+        //配置pageControl 初始化等
+        [self pageControlCongfig];
         //初始化图片描述
-        _pageDescripLabel = [[UILabel alloc]initWithFrame:CGRectMake(0,_pageControl.frame.origin.y -10, self.frame.size.width, 40)];
-        [_pageDescripLabel setTextAlignment:NSTextAlignmentRight];
-        _pageDescripLabel.backgroundColor = [UIColor clearColor];
-        _pageDescripLabel.textColor = [UIColor colorWithWhite:0.8 alpha:0.9];
-        [self addSubview:_pageDescripLabel];
-        
-        
+        [self pageImageDescriLabelConfig];
+        //设置三个imageview的初始image，如果没有设置image 则直接跳过
         [self cycleImageViewConfig];
         
         //添加点击事件
@@ -93,25 +71,57 @@
 }
 
 //设置三个imageview的位置
--(void)setCycleViewFrame:(CGRect)frame
+- (void)cycleViewConfigWithFrame:(CGRect)frame
 {
     self.frame = frame;
-
     self.leftImageView  = [[UIImageView alloc]initWithFrame:frame];
     self.middleImageView = [[UIImageView alloc]initWithFrame:CGRectMake(frame.size.width, frame.origin.y, frame.size.width, frame.size.height)];
     self.rightImageView = [[UIImageView alloc]initWithFrame:CGRectMake(2*frame.size.width, frame.origin.y, frame.size.width, frame.size.height)];
+    //初始化容器ScrollView和三个imageview
+    _containerView = [[UIScrollView alloc]initWithFrame:frame];
+    _containerView.contentSize = CGSizeMake(3*frame.size.width, frame.size.height);
+    _containerView.contentOffset = CGPointMake(self.frame.size.width, self.frame.origin.y)//显示中间图片
+    ;
+    _containerView.delegate = self;
+    [_containerView addSubview:_leftImageView];
+    [_containerView addSubview:_rightImageView];
+    [_containerView addSubview:_middleImageView];
+    _containerView.scrollEnabled = YES;
+    _containerView.showsHorizontalScrollIndicator = NO;
+    _containerView.showsVerticalScrollIndicator = NO;
+    _containerView.pagingEnabled = YES;
+    
+    [self addSubview:_containerView];
 }
 
-//设置三个imageview的image
+- (void)pageControlCongfig
+{
+    _pageControl = [[UIPageControl alloc]init];
+    _pageControl.currentPageIndicatorTintColor = [UIColor blackColor];
+    _pageControl.pageIndicatorTintColor = [UIColor whiteColor];
+    _pageControl.currentPage = 0;
+    [self pageControlPosition:_pageLocation];
+    [self addSubview:_pageControl];
+    _pageControl.numberOfPages = _images.count;
+}
+
+- (void)pageImageDescriLabelConfig
+{
+    _pageDescripLabel = [[UILabel alloc]initWithFrame:CGRectMake(0,_pageControl.frame.origin.y -10, self.frame.size.width, 40)];
+    [_pageDescripLabel setTextAlignment:NSTextAlignmentRight];
+    _pageDescripLabel.backgroundColor = [UIColor clearColor];
+    _pageDescripLabel.textColor = [UIColor colorWithWhite:0.8 alpha:0.9];
+    [self addSubview:_pageDescripLabel];
+}
+
 - (void)cycleImageViewConfig
 {
     if ([_images count] == 0) {
         return;
     }
-    
-    _middleImageView.image = (UIImage *)_images[(_currentNumber+_images.count)%_images.count];
-    _leftImageView.image = (UIImage *)_images[(_currentNumber+_images.count - 1)%(_images.count)];
-    _rightImageView.image = (UIImage *)_images[(_currentNumber+_images.count + 1)%(_images.count)];
+    _middleImageView.image = (UIImage *)_images[CC_CYCLEINDEX_CALCULATE(_currentNumber,_images.count)];
+    _leftImageView.image = (UIImage *)_images[CC_CYCLEINDEX_CALCULATE(_currentNumber - 1,_images.count)];
+    _rightImageView.image = (UIImage *)_images[CC_CYCLEINDEX_CALCULATE(_currentNumber + 1,_images.count)];
     
     [self timeSetter];
 }
@@ -120,26 +130,31 @@
 {
     if ([self.delegate respondsToSelector:@selector(cyclePageClickAction:)]) {
             [self.delegate cyclePageClickAction:self.currentNumber];
+    }else {
+            NSLog(@"did not realize the id<CCCycleScrollViewClickActionDeleage>delegate");
     }
 }
 
-#pragma mark - timer
+#pragma mark - timer configure
 //设置定时器
 - (void)timeSetter
 {
     self.timer = [NSTimer scheduledTimerWithTimeInterval:self.pageChangeTime target:self selector:@selector(timeChanged) userInfo:nil repeats:YES];
-    [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
+    
+//    self.timer = [NSTimer timerWithTimeInterval:self.pageChangeTime target:self selector:@selector(timeChanged) userInfo:nil repeats:YES];
+//    [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
 }
 - (void)timeChanged
 {
-    double page = (_pageControl.currentPage + 1) % self.images.count;
-    _pageControl.currentPage = page;
+    self.currentNumber =  CC_CYCLEINDEX_CALCULATE(_currentNumber+1,_images.count);
+    self.pageControl.currentPage = self.currentNumber;
     [self setPageDescripText];
-    [self.containerView setContentOffset:CGPointMake(2*self.frame.size.width, 0) animated:YES];
-    [self containerViewContentOffsetBack];
+    [self.containerView setContentOffset:CGPointMake(2*self.frame.size.width, self.frame.origin.y) animated:YES];
+    [self changeImageViewWith:self.currentNumber];
+    self.containerView.contentOffset = CGPointZero;
 }
 
-#pragma mark -UIScrollViewDelegate
+#pragma mark - ScrollView  Delegate
 //当用户手动个轮播时 关闭定时器
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
@@ -154,28 +169,28 @@
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
-    [self containerViewContentOffsetBack];
-    self.pageControl.currentPage = self.currentNumber;
-    [self changeImageViewWith:self.currentNumber];
-    [self setPageDescripText];
-}
-
-- (void)containerViewContentOffsetBack
-{
     CGPoint offset = [self.containerView contentOffset];
     if (offset.x == 2*self.frame.size.width) {
-        self.currentNumber = (self.currentNumber + 1 + self.images.count)%(self.images.count);
+        self.currentNumber = CC_CYCLEINDEX_CALCULATE(_currentNumber  + 1,_images.count);
     } else if (offset.x == 0){
-        self.currentNumber = (self.currentNumber - 1 + self.images.count)%(self.images.count);
+        self.currentNumber = CC_CYCLEINDEX_CALCULATE(_currentNumber  - 1,_images.count);
     }else{
         return;
     }
+    
+    self.pageControl.currentPage = self.currentNumber;
+    [self changeImageViewWith:self.currentNumber];
+    [self setPageDescripText];
     self.containerView.contentOffset = CGPointMake(self.frame.size.width, self.frame.origin.y);
+
 }
 
-
 #pragma mark - judge the pageControl's position
-//确定pageControl的位置，可以自定义设置
+/**
+ *  确定pageControl的位置，可以自定义设置
+ *
+ *  @param position 有三个位置：下左，下中，下右
+ */
 - (void)pageControlPosition:(CCCycleScrollPageViewPosition)position
 {
     
@@ -192,23 +207,26 @@
 
 }
 
-- (void)setPageLocation:(CCCycleScrollPageViewPosition)pageLocation
-{
-    [self pageControlPosition:pageLocation];
-}
-
 #pragma mark - iamgeView cycle changed 
-//改变轮播的图片
+/**
+ *  改变轮播的图片
+ *
+ *  @param imageNumber 设置当前，前，后的图片
+ */
 - (void)changeImageViewWith:(NSInteger)imageNumber
 {
     self.middleImageView.image = self.images[(imageNumber + self.images.count)%self.images.count];
     self.leftImageView.image = self.images[(imageNumber-1+self.images.count)%self.images.count];
     self.rightImageView.image = self.images[(imageNumber+1+self.images.count)%self.images.count];
-    
 }
 
 
-//描述
+#pragma mark - property setter
+- (void)setPageLocation:(CCCycleScrollPageViewPosition)pageLocation
+{
+    [self pageControlPosition:pageLocation];
+}
+
 - (void)setPageDescrips:(NSArray *)pageDescrips
 {
     _pageDescrips = [[NSArray alloc]initWithArray:pageDescrips];
@@ -217,8 +235,21 @@
 
 - (void)setPageDescripText
 {
-    self.pageDescripLabel.text = self.pageDescrips[self.pageControl.currentPage];
+    self.pageDescripLabel.text = self.pageDescrips[self.currentNumber];
     [self.pageDescripLabel sizeToFit];
 }
+
+- (void)setPageChangeTime:(NSTimeInterval)duration
+{
+    _pageChangeTime = duration;
+    [_timer invalidate];
+    [self timeSetter];
+}
+
+- (void)pageChangeAnimationType:(NSInteger)animationType
+{
+
+}
+
 
 @end

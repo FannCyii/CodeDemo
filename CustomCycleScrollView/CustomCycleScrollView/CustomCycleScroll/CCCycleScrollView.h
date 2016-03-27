@@ -17,9 +17,11 @@ typedef NS_ENUM(int,CCCycleScrollPageViewPosition){
     
 };
 
+
 @protocol CCCycleScrollViewClickActionDeleage <NSObject>
 
 @optional
+//点击图片触发操作
 - (void)cyclePageClickAction:(NSInteger)clickIndex;
 
 @end
@@ -37,6 +39,7 @@ typedef NS_ENUM(int,CCCycleScrollPageViewPosition){
 @property (nonatomic, assign)CCCycleScrollPageViewPosition pageLocation;
 @property (nonatomic, weak)id<CCCycleScrollViewClickActionDeleage>delegate;
 
+- (instancetype)initWithImages:(NSArray *)images;
 - (instancetype)initWithImages:(NSArray *)images withFrame:(CGRect)frame;
 - (instancetype)initWithImages:(NSArray *)images withPageViewLocation:(CCCycleScrollPageViewPosition)pageLocation withPageChangeTime:(NSTimeInterval)changeTime withFrame:(CGRect)frame;
 

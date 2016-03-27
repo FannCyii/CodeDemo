@@ -10,7 +10,7 @@
 #import "CCCycleScrollView.h"
 
 @interface ViewController ()<CCCycleScrollViewClickActionDeleage>
-
+@property (nonatomic, strong)CCCycleScrollView *cyclePlayView;
 @end
 
 @implementation ViewController
@@ -33,18 +33,18 @@
         [images addObject:image];
     }
     
-    CCCycleScrollView *cyclePlayView = [[CCCycleScrollView alloc]initWithImages:images withFrame:CGRectMake(0, 0, self.view.frame.size.width, 200)];
-    
-    cyclePlayView.backgroundColor = [UIColor grayColor];
-    cyclePlayView.pageDescrips = @[@"大海",@"花",@"长灯",@"阳光下的身影",@"秋树",@"摩天轮"];
-    cyclePlayView.delegate = self;
-    [self.view addSubview:cyclePlayView];
+    //self.cyclePlayView = [[CCCycleScrollView alloc]initWithImages:images withFrame:CGRectMake(0, 0, self.view.frame.size.width, 200)];
+    self.cyclePlayView = [[CCCycleScrollView alloc]initWithImages:images];
+    self.cyclePlayView.pageDescrips = @[@"大海",@"花",@"长灯",@"阳光下的身影",@"秋树",@"摩天轮"];
+    self.cyclePlayView.delegate = self;
+    self.cyclePlayView.backgroundColor = [UIColor grayColor];
+    [self.view addSubview:self.cyclePlayView];
 
 }
 
 - (void)cyclePageClickAction:(NSInteger)clickIndex
 {
-    NSLog(@"点击了第%ld个图片",clickIndex);
+    NSLog(@"点击了第%ld个图片:%@",clickIndex,self.cyclePlayView.pageDescrips[clickIndex]);
 }
 
 @end
