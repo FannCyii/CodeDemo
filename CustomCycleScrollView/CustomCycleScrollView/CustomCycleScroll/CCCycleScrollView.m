@@ -70,10 +70,11 @@
     return self;
 }
 
-//设置三个imageview的位置
+#pragma mark -init configure
 - (void)cycleViewConfigWithFrame:(CGRect)frame
 {
     self.frame = frame;
+    //设置三个imageview的位置
     self.leftImageView  = [[UIImageView alloc]initWithFrame:frame];
     self.middleImageView = [[UIImageView alloc]initWithFrame:CGRectMake(frame.size.width, frame.origin.y, frame.size.width, frame.size.height)];
     self.rightImageView = [[UIImageView alloc]initWithFrame:CGRectMake(2*frame.size.width, frame.origin.y, frame.size.width, frame.size.height)];
@@ -149,9 +150,10 @@
     self.currentNumber =  CC_CYCLEINDEX_CALCULATE(_currentNumber+1,_images.count);
     self.pageControl.currentPage = self.currentNumber;
     [self setPageDescripText];
-    [self.containerView setContentOffset:CGPointMake(2*self.frame.size.width, self.frame.origin.y) animated:YES];
-    [self changeImageViewWith:self.currentNumber];
-    self.containerView.contentOffset = CGPointZero;
+    //[self.containerView setContentOffset:CGPointMake(2*self.frame.size.width, self.frame.origin.y) animated:YES];
+    [self pageChangeAnimationType:1];
+    
+
 }
 
 #pragma mark - ScrollView  Delegate
@@ -246,8 +248,23 @@
     [self timeSetter];
 }
 
+#pragma mark - page change animation type
 - (void)pageChangeAnimationType:(NSInteger)animationType
 {
+    if (animationType == 0) {
+        [self.containerView setContentOffset:CGPointMake(2*self.frame.size.width, self.frame.origin.y) animated:YES];
+        
+        self.containerView.contentOffset = CGPointZero;
+    }else if (animationType == 1){
+        self.containerView.contentOffset = CGPointMake(2*self.frame.size.width, self.frame.origin.y);
+       [UIView animateWithDuration:self.pageChangeTime delay:0.0f options:UIViewAnimationOptionTransitionFlipFromLeft animations:^{
+           [self changeImageViewWith:self.currentNumber];
+       } completion:^(BOOL finished) {
+           self.containerView.contentOffset = CGPointZero;
+       }];
+        
+    }
+    
 
 }
 
