@@ -99,18 +99,17 @@ NSString * const cellIdentifior = @"CQFCycleCell";
     }
 }
 
-- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
-{
-    
-    //NSLog(@"%d",decelerate);
-    if (decelerate) {
-        NSLog(@"scrollviiewDidEndDragging111111111111111");
-    }else{
-        NSLog(@"scrollviiewDidEndDragging222222222222222");
-    }
-    NSLog(@"%d",-1%3);
-}
-
+//- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+//{
+//    
+//    //NSLog(@"%d",decelerate);
+//    if (decelerate) {
+//        NSLog(@"scrollviiewDidEndDragging111111111111111");
+//    }else{
+//        NSLog(@"scrollviiewDidEndDragging222222222222222");
+//    }
+//}
+//
 
 
 
